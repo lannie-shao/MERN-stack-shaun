@@ -7,7 +7,6 @@ const app=express()
 
 //middleware 
 app.use(express.json())
-//I think we can put authentication token here in this middleware
 app.use((req,res,next)=>{
     console.log(req.path,req.method)
     next()
