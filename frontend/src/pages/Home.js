@@ -1,14 +1,20 @@
 import React, {useEffect,useContext,useState} from 'react'
+import AddWorkoutForm from '../components/AddWorkoutForm'
+import { AuthContext } from '../context/AuthContext'
 import { WorkoutContext } from '../context/WorkoutContext'
-import useWorkoutContext from '../hook/useWorkoutContext'
 
 const Home = () => {
     const {workouts,dispatch}=useContext(WorkoutContext)
-    // const [workouts, setWorkouts] = useState(null)
+    const {state}=useContext(AuthContext)
+
     useEffect(()=>{
         localStorage.removeItem("loglevel")
         const getWorkouts=async()=>{
-            const result=  await fetch('/api/workouts')
+            const result= await fetch('/api/workouts',{
+                headers:{
+                    "Authorization":`bearer ${state.user.token}`
+                }
+            })
             const json=await result.json()
 
             if(result.ok){
@@ -16,12 +22,17 @@ const Home = () => {
                 // setWorkouts(json)
             }
         }
-        getWorkouts();
-    },[dispatch])
+        if(state.user){
+            getWorkouts();
+        }
+    },[dispatch,state.user])
 
     const deleteHandler=async(id)=>{
         const response=await fetch('/api/workouts/'+id,{
-            method:'DELETE'
+            method:'DELETE',
+            headers:{
+                "Authorization":`bearer ${state.user.token}`
+            }
         })
         const json=await response.json()
 
@@ -30,7 +41,8 @@ const Home = () => {
         }
     }
   return (
-    <div style={{padding:10,width:'50%'}}>
+    <div style={{display:'flex',justifyContent:'space-around'}}>
+        <div style={{padding:10,width:'50%'}}>
         {workouts && workouts.map((workout)=>(
             <div key={workout._id} style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <h2 >{workout.title}</h2>
@@ -40,6 +52,8 @@ const Home = () => {
             </button>
             </div>
         ))}
+        </div>
+        <AddWorkoutForm />
     </div>
   )
 }
